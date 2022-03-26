@@ -6,7 +6,7 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 18:49:12 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/24 19:12:03 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/03/26 02:19:39 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,12 +48,11 @@ void validate_input(t_pipe_data *pipe_data, char *path_var)
 	}
 }
 
-void first_cmd_prep(t_pipe_data *pipe_data, int *pipe_fds)
+void first_cmd_prep(t_pipe_data *pipe_data, int *cmd_pipe_fds, int *here_doc_pipe_fds)
 {
 	int fd;
 	char *line;
 
-	dup2(pipe_fds[1], 1);
 	if (pipe_data->infile_status)
 	{
 		fd = open(pipe_data->infile, O_RDONLY);
@@ -62,16 +61,21 @@ void first_cmd_prep(t_pipe_data *pipe_data, int *pipe_fds)
 	}
 	else if (pipe_data->is_heredoc)
 	{
+		dup2(here_doc_pipe_fds[1], 1);
 		line = get_next_line(0);
 		while (line != NULL && ft_strncmp(line, pipe_data->heredoc, strlen(line) - 1))
 		{
 			write(1, line, strlen(line));
 			line = get_next_line(0);
 		}
+		dup2(here_doc_pipe_fds[0], 0);
+		close(here_doc_pipe_fds[1]);
+		close(here_doc_pipe_fds[0]);
 	}
+	dup2(cmd_pipe_fds[1], 1);
 }
 
-void ith_cmd_prep(int i, t_pipe_data *pipe_data, int *pipe_fds, int input_fd)
+void ith_cmd_prep(int i, t_pipe_data *pipe_data, int *cmd_pipe_fds, int input_fd)
 {
 	int fd;
 
@@ -82,11 +86,11 @@ void ith_cmd_prep(int i, t_pipe_data *pipe_data, int *pipe_fds, int input_fd)
 		close(fd);
 	}
 	else
-		dup2(pipe_fds[1], 1);
+		dup2(cmd_pipe_fds[1], 1);
 	dup2(input_fd, 0);
 }
 
-void exec_cmd(char *cmd, char *cmd_path, char **envp, int *pipe_fds, int input_fd)
+void exec_cmd(char *cmd, char *cmd_path, char **envp, int *cmd_pipe_fds, int input_fd)
 {
 	char **argv;
 
@@ -95,43 +99,44 @@ void exec_cmd(char *cmd, char *cmd_path, char **envp, int *pipe_fds, int input_f
 		argv = ft_split(cmd, '\'');
 	else
 		argv = ft_split(cmd, ' ');
-	close(pipe_fds[1]);
-	close(pipe_fds[0]);
+	close(cmd_pipe_fds[1]);
+	close(cmd_pipe_fds[0]);
 	close(input_fd);
-	if (execve(cmd_path, argv, envp) == -1)
+	if (!cmd_path)
+		exit(1);
+	else if (execve(cmd_path, argv, envp) == -1)
 		ft_putstr_fd(strerror(errno), 2);
 }
 
-void execute_commands(t_pipe_data *pipe_data, char **envp)
+void driver(t_pipe_data *pipe_data, char **envp)
 {
-	int pipe_fds[2];
+	int cmd_pipe_fds[2];
+	int here_doc_pipe_fds[2];
 	int i = -1;
-	int id;
 	int input_fd = -1;
 
+	if (pipe_data->is_heredoc)
+		pipe(here_doc_pipe_fds);
 	while (++i < pipe_data->cmds_size)
 	{
-		pipe(pipe_fds);
-		if (pipe_data->cmds_paths[i])
+		pipe(cmd_pipe_fds);
+		if (fork() == 0)
 		{
-			id = fork();
-			if (id == 0)
-			{
-				if (i == 0)
-					first_cmd_prep(pipe_data, pipe_fds);
-				else
-					ith_cmd_prep(i, pipe_data, pipe_fds, input_fd);
-				// char d = i + '0';
-				// write(2,"here i is ", 10);
-				// write(2, &d, 1);
-				// write(2,"\n", 1);
-				exec_cmd(pipe_data->cmds_names[i], pipe_data->cmds_paths[i], envp, pipe_fds, input_fd);
-			}
+			if (i == 0)
+				first_cmd_prep(pipe_data, cmd_pipe_fds, here_doc_pipe_fds);
+			else
+				ith_cmd_prep(i, pipe_data, cmd_pipe_fds, input_fd);
+			exec_cmd(pipe_data->cmds_names[i], pipe_data->cmds_paths[i], envp, cmd_pipe_fds, input_fd);
 		}
-		close(pipe_fds[1]);
+		if (i == 0 && pipe_data->is_heredoc)
+		{
+			close(here_doc_pipe_fds[1]);
+			close(here_doc_pipe_fds[0]);
+		}
+		close(cmd_pipe_fds[1]);
 		if (input_fd != -1)
 			close(input_fd);
-		input_fd = pipe_fds[0];
+		input_fd = cmd_pipe_fds[0];
 	}
 	close(input_fd);
 	i = -1;
@@ -176,9 +181,6 @@ void set_pipe_data(t_pipe_data *pipe_data, int argc, char *argv[], char *envp[])
 		if (!path_var)
 			path_var = ft_strnstr(envp[i], "PATH=", 5);
 	path_var = path_var + 5;
-	// i = -1;
-	// while (++i < pipe_data->cmds_size)
-	// 	printf("---> %s\n", pipe_data->cmds_names[i]);
 	validate_input(pipe_data, path_var);
 }
 
@@ -189,8 +191,9 @@ int main(int argc, char *argv[], char *envp[])
 	if (argc < 2)
 		return (0);
 	pipe_data = malloc(sizeof(t_pipe_data));
+	errors_ids = malloc(sizeof(int) * argc - 1);
 	if (!pipe_data)
 		return (1);
 	set_pipe_data(pipe_data, argc, argv, envp);
-	execute_commands(pipe_data, envp);
+	driver(pipe_data, envp);
 }

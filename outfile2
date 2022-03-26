@@ -1,0 +1,10 @@
+Makefile
+PIPEX_TESTER
+infile
+outfile
+outfile2
+pipex
+pipex.c
+pipex.h
+shared
+utils

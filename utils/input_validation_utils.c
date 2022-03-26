@@ -6,7 +6,7 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/24 19:09:57 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/24 19:16:15 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/03/25 23:40:28 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,21 +14,10 @@
 
 int validate_infile(char *infile)
 {
-	if (access(infile, F_OK))
-	{
-		ft_putstr_fd("no such file or directory: ", 2);
-		ft_putstr_fd(infile, 2);
-		ft_putstr_fd("\n", 2);
-		return (0);
-	}
-	else if (access(infile, R_OK))
-	{
-		ft_putstr_fd("permission denied: ", 2);
-		ft_putstr_fd(infile, 2);
-		ft_putstr_fd("\n", 2);
-		return (0);
-	}
-	return (1);
+	if (!access(infile, F_OK) && !access(infile, R_OK))
+		return (1);
+	perror(infile);
+	return (0);
 }
 
 char *put_cmd_status(int status, char *cmd_path, char *cmd)
@@ -82,19 +71,8 @@ char *validate_cmd(char *cmd, char **exec_programs_dirs)
 
 int validate_cmd_from_path(char *cmd_path)
 {
-	if (access(cmd_path, F_OK))
-	{
-		ft_putstr_fd("no such file or directory: ", 2);
-		ft_putstr_fd(cmd_path, 2);
-		ft_putstr_fd("\n", 2);
-		return (0);
-	}
-	else if (access(cmd_path, X_OK))
-	{
-		ft_putstr_fd("permission denied: ", 2);
-		ft_putstr_fd(cmd_path, 2);
-		ft_putstr_fd("\n", 2);
-		return (0);
-	}
-	return (1);
+	if (!access(cmd_path, F_OK) && !access(cmd_path, X_OK))
+		return (1);
+	perror(cmd_path);
+	return (0);
 }
