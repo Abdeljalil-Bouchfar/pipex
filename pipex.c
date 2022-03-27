@@ -6,11 +6,14 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 18:49:12 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/27 02:54:18 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/03/27 21:31:01 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
+
+int here_doc_pipe_fds[2];
+int cmd_pipe_fds[2];
 
 void validate_input(t_pipe_data *pipe_data, char *path_var)
 {
@@ -48,10 +51,9 @@ void validate_input(t_pipe_data *pipe_data, char *path_var)
 	}
 }
 
-void first_cmd_prep(t_pipe_data *pipe_data, int *cmd_pipe_fds, int *here_doc_pipe_fds)
+void first_cmd_prep(t_pipe_data *pipe_data)
 {
 	int fd;
-	char *line;
 
 	if (pipe_data->infile_status)
 	{
@@ -59,23 +61,10 @@ void first_cmd_prep(t_pipe_data *pipe_data, int *cmd_pipe_fds, int *here_doc_pip
 		dup2(fd, 0);
 		close(fd);
 	}
-	else if (pipe_data->is_heredoc)
-	{
-		dup2(here_doc_pipe_fds[1], 1);
-		line = get_next_line(0);
-		while (line != NULL && ft_strncmp(line, pipe_data->heredoc, strlen(line) - 1))
-		{
-			write(1, line, strlen(line));
-			line = get_next_line(0);
-		}
-		dup2(here_doc_pipe_fds[0], 0);
-		close(here_doc_pipe_fds[1]);
-		close(here_doc_pipe_fds[0]);
-	}
 	dup2(cmd_pipe_fds[1], 1);
 }
 
-void ith_cmd_prep(int i, t_pipe_data *pipe_data, int *cmd_pipe_fds, int input_fd)
+void ith_cmd_prep(int i, t_pipe_data *pipe_data, int input_fd)
 {
 	int fd;
 
@@ -90,7 +79,7 @@ void ith_cmd_prep(int i, t_pipe_data *pipe_data, int *cmd_pipe_fds, int input_fd
 	dup2(input_fd, 0);
 }
 
-void exec_cmd(char *cmd, char *cmd_path, char **envp, int *cmd_pipe_fds, int input_fd)
+void exec_cmd(char *cmd, char *cmd_path, char **envp, int input_fd)
 {
 	char **argv;
 
@@ -101,11 +90,15 @@ void exec_cmd(char *cmd, char *cmd_path, char **envp, int *cmd_pipe_fds, int inp
 		argv = ft_split(cmd, ' ');
 	close(cmd_pipe_fds[1]);
 	close(cmd_pipe_fds[0]);
-	close(input_fd);
+	if (input_fd != -1)
+		close(input_fd);
 	if (!cmd_path)
 		exit(1);
 	else if (execve(cmd_path, argv, envp) == -1)
+	{
 		ft_putstr_fd(strerror(errno), 2);
+		exit(1);
+	}
 }
 
 void validate_cmd_test(char *cmd_name, char **cmds_path, char **envp)
@@ -141,36 +134,28 @@ void validate_cmd_test(char *cmd_name, char **cmds_path, char **envp)
 
 void driver(t_pipe_data *pipe_data, char **envp)
 {
-	int cmd_pipe_fds[2];
-	int here_doc_pipe_fds[2];
+
 	int i = -1;
 	int input_fd = -1;
 
-	if (pipe_data->is_heredoc)
-	{
-		pipe(here_doc_pipe_fds);
-		pipe_data->infile_status = 0;
-	}
-	else
-		pipe_data->infile_status = validate_infile(pipe_data->infile);
 	while (++i < pipe_data->cmds_size)
 	{
-		pipe(cmd_pipe_fds);
+		if (i + 1 != pipe_data->cmds_size)
+			pipe(cmd_pipe_fds);
 		if (fork() == 0)
 		{
-			if (i != 0 || !pipe_data->is_heredoc || pipe_data->infile_status)
-				validate_cmd_test(pipe_data->cmds_names[i], pipe_data->cmds_paths + i, envp);
-			else
-				pipe_data->cmds_paths[i] = NULL;
-			if (i == 0)
+			if (i != 0)
+				ith_cmd_prep(i, pipe_data, input_fd);
+			else if (pipe_data->infile_status)
+				first_cmd_prep(pipe_data);
+			else if (pipe_data->is_heredoc)
 			{
-				first_cmd_prep(pipe_data, cmd_pipe_fds, here_doc_pipe_fds);
-				if (pipe_data->is_heredoc)
-					validate_cmd_test(pipe_data->cmds_names[i], pipe_data->cmds_paths + i, envp);
+				dup2(cmd_pipe_fds[1], 1);
+				dup2(here_doc_pipe_fds[0], 0);
+				close(here_doc_pipe_fds[1]);
+				close(here_doc_pipe_fds[0]);
 			}
-			else
-				ith_cmd_prep(i, pipe_data, cmd_pipe_fds, input_fd);
-			exec_cmd(pipe_data->cmds_names[i], pipe_data->cmds_paths[i], envp, cmd_pipe_fds, input_fd);
+			exec_cmd(pipe_data->cmds_names[i], pipe_data->cmds_paths[i], envp, input_fd);
 		}
 		if (i == 0 && pipe_data->is_heredoc)
 		{
@@ -190,12 +175,22 @@ void driver(t_pipe_data *pipe_data, char **envp)
 
 void check_heredoc(t_pipe_data *pipe_data, char *argv[], int argc)
 {
+	char *line;
+
 	if (!ft_strncmp(argv[1], "here_doc", 9))
 	{
 		pipe_data->is_heredoc = 1;
 		pipe_data->heredoc = argv[2];
 		pipe_data->infile = NULL;
 		pipe_data->cmds_size = argc - 4;
+		pipe(here_doc_pipe_fds);
+		line = get_next_line(0);
+		while (line != NULL && strcmp(line, pipe_data->heredoc))
+		{
+			write(here_doc_pipe_fds[1], line, strlen(line));
+			write(here_doc_pipe_fds[1], "\n", 1);
+			line = get_next_line(0);
+		}
 	}
 	else
 	{
@@ -225,7 +220,7 @@ void set_pipe_data(t_pipe_data *pipe_data, int argc, char *argv[], char *envp[])
 		if (!path_var)
 			path_var = ft_strnstr(envp[i], "PATH=", 5);
 	path_var = path_var + 5;
-	// validate_input(pipe_data, path_var);
+	validate_input(pipe_data, path_var);
 }
 
 int main(int argc, char *argv[], char *envp[])

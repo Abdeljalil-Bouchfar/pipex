@@ -6,7 +6,7 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/24 13:04:18 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/24 13:23:33 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/03/27 14:29:05 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,10 @@ char *get_next_line(int fd)
 		line = malloc(len + 2);
 		while (++i < len)
 			line[i] = temp[i];
-		line[i++] = buffer;
+		if (buffer != '\n')
+			line[i++] = buffer;
 		line[i] = 0;
-		if (line)
+		if (temp)
 			free(temp);
 	}
 	return (line);
