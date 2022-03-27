@@ -6,7 +6,7 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/24 19:09:16 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/24 19:19:25 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/03/26 23:45:22 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ char *get_cmd(char *str)
 		i++;
 	cmd = malloc(sizeof(char) * i + 1);
 	if (!cmd)
-		return (0);
+		return (NULL);
 	j = -1;
 	while (++j < i)
 		cmd[j] = str[j];
