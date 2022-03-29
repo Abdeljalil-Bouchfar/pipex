@@ -6,7 +6,7 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/17 17:39:33 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/17 17:40:16 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/03/28 23:22:35 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,5 +29,5 @@ char	*ft_strnstr(const char *haystack, const char *needle, size_t len)
 		}
 		haystack++;
 	}
-	return (0);
+	return (NULL);
 }

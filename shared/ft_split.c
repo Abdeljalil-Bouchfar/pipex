@@ -6,15 +6,15 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/12 11:09:51 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/16 13:38:05 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/03/28 16:27:31 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../pipex.h"
 
-static void ft_strncpy(char *dest, char *src, int n)
+static void	ft_strncpy(char *dest, char *src, int n)
 {
-	int i;
+	int	i;
 
 	i = -1;
 	while (++i < n)
@@ -22,11 +22,11 @@ static void ft_strncpy(char *dest, char *src, int n)
 	dest[i] = 0;
 }
 
-static void collect_words(char **arr, char *str, char c, int len)
+static void	collect_words(char **arr, char *str, char c, int len)
 {
-	int index;
-	int i;
-	int n;
+	int	index;
+	int	i;
+	int	n;
 
 	index = 0;
 	i = 0;
@@ -44,17 +44,17 @@ static void collect_words(char **arr, char *str, char c, int len)
 			while (index--)
 				free(arr[index]);
 			free(arr);
-			break;
+			break ;
 		}
 		ft_strncpy(arr[index], str + i - n, n);
 		index++;
 	}
 }
 
-static int words_counter(char *str, char c)
+static int	words_counter(char *str, char c)
 {
-	int words;
-	int i;
+	int	words;
+	int	i;
 
 	words = 0;
 	i = 0;
@@ -69,10 +69,10 @@ static int words_counter(char *str, char c)
 	return (words);
 }
 
-char **ft_split(char const *s, char c)
+char	**ft_split(char const *s, char c)
 {
-	char **arr;
-	int length;
+	char	**arr;
+	int		length;
 
 	if (!s)
 		return (NULL);

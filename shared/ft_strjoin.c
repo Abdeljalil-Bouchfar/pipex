@@ -6,28 +6,18 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/13 15:56:40 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/15 15:00:27 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/03/28 16:33:48 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../pipex.h"
 
-size_t ft_strlen(const char *s)
+char	*ft_strjoin(char const *s1, char const *s2)
 {
-	size_t i;
-
-	i = 0;
-	while (s[i])
-		i++;
-	return (i);
-}
-
-char *ft_strjoin(char const *s1, char const *s2)
-{
-	int i;
-	int j;
-	size_t size;
-	char *res;
+	int		i;
+	int		j;
+	size_t	size;
+	char	*res;
 
 	if (!s1 || !s2)
 		return (NULL);

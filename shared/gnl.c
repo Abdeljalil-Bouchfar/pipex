@@ -6,19 +6,19 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/24 13:04:18 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/27 14:29:05 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/03/28 16:30:23 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../pipex.h"
 
-char *get_next_line(int fd)
+char	*get_next_line(int fd)
 {
-	int i;
-	int len;
-	char *temp;
-	char *line;
-	char buffer;
+	int		i;
+	int		len;
+	char	*temp;
+	char	*line;
+	char	buffer;
 
 	line = NULL;
 	buffer = 0;
@@ -28,8 +28,7 @@ char *get_next_line(int fd)
 		len = 0;
 		temp = line;
 		if (line)
-			while (line[len])
-				len++;
+			len = ft_strlen(line);
 		line = malloc(len + 2);
 		while (++i < len)
 			line[i] = temp[i];

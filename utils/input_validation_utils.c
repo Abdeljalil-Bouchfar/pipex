@@ -6,21 +6,13 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/24 19:09:57 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/25 23:40:28 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/03/28 23:58:48 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../pipex.h"
 
-int validate_infile(char *infile)
-{
-	if (!access(infile, F_OK) && !access(infile, R_OK))
-		return (1);
-	perror(infile);
-	return (0);
-}
-
-char *put_cmd_status(int status, char *cmd_path, char *cmd)
+char	*put_cmd_status(int status, char *cmd_path, char *cmd)
 {
 	if (status)
 	{
@@ -41,11 +33,11 @@ char *put_cmd_status(int status, char *cmd_path, char *cmd)
 		return (cmd_path);
 }
 
-char *validate_cmd(char *cmd, char **exec_programs_dirs)
+char	*get_cmd_path(char *cmd, char **exec_programs_dirs)
 {
-	char *cmd_path;
-	int i;
-	int status;
+	char	*cmd_path;
+	int		i;
+	int		status;
 
 	i = -1;
 	status = 1;
@@ -63,16 +55,32 @@ char *validate_cmd(char *cmd, char **exec_programs_dirs)
 		else
 		{
 			status = 0;
-			break;
+			break ;
 		}
 	}
-	return put_cmd_status(status, cmd_path, cmd);
+	return (put_cmd_status(status, cmd_path, cmd));
 }
 
-int validate_cmd_from_path(char *cmd_path)
+void	validate_cmd(char *cmd, char **cmd_path, char **exec_programs_dirs)
 {
-	if (!access(cmd_path, F_OK) && !access(cmd_path, X_OK))
+	if (ft_strchr(cmd, '/'))
+	{
+		if (!access(cmd, F_OK) && !access(cmd, X_OK))
+			*cmd_path = ft_strdup(cmd);
+		else
+		{
+			*cmd_path = NULL;
+			perror(cmd);
+		}
+	}
+	else
+		*cmd_path = get_cmd_path(cmd, exec_programs_dirs);
+}
+
+int	validate_infile(char *infile)
+{
+	if (!access(infile, F_OK) && !access(infile, R_OK))
 		return (1);
-	perror(cmd_path);
+	perror(infile);
 	return (0);
 }
