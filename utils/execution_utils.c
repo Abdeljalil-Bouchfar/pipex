@@ -6,7 +6,7 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/28 16:49:50 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/28 23:59:21 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/03/29 16:54:20 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ void	first_cmd_prep(t_pipe_data *pipe_data)
 
 	if (pipe_data->infile_status)
 	{
-		fd = open(pipe_data->infile, O_RDONLY);
+		fd = open(pipe_data->infile_path, O_RDONLY);
 		dup2(fd, 0);
 		close(fd);
 	}
@@ -31,7 +31,12 @@ void	ith_cmd_prep(int i, t_pipe_data *pipe_data, int input_fd)
 
 	if (i + 1 == pipe_data->cmds_size)
 	{
-		fd = open(pipe_data->outfile, O_CREAT | O_WRONLY | O_TRUNC, 0777);
+		if (pipe_data->is_heredoc)
+			fd = open(pipe_data->outfile_path,
+					O_CREAT | O_WRONLY | O_APPEND, 0777);
+		else
+			fd = open(pipe_data->outfile_path,
+					O_CREAT | O_WRONLY | O_TRUNC, 0777);
 		dup2(fd, 1);
 		close(fd);
 	}
@@ -50,7 +55,7 @@ void	exec_cmd(char *cmd, char *cmd_path, char **envp)
 	else
 		argv = ft_split(cmd, ' ');
 	if (!cmd_path)
-		exit(1);
+		exit(errno);
 	else if (execve(cmd_path, argv, envp) == -1)
 	{
 		ft_putstr_fd(strerror(errno), 2);

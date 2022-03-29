@@ -6,7 +6,7 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 18:49:09 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/28 23:58:26 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/03/29 16:50:27 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,14 +22,14 @@
 
 typedef struct s_pipe_data
 {
-	char	*infile;
+	char	*infile_path;
 	int		infile_status;
-	char	*outfile;
+	char	*outfile_path;
 	char	**cmds_names;
 	char	**cmds_paths;
 	int		cmds_size;
 	int		is_heredoc;
-	char	*heredoc;
+	char	*heredoc_limiter;
 	int		cmd_pipe_fds[2];
 	int		here_doc_pipe_fds[2];
 }	t_pipe_data;
@@ -38,7 +38,7 @@ void	ft_putstr_fd(char *s, int fd);
 char	*get_cmd(char *str);
 
 void	validate_cmd(char *cmd, char **cmd_path, char **exec_programs_dirs);
-int		validate_infile(char *infile);
+int		validate_infile(char *infile_path);
 
 void	child_process(int i, int input_fd,
 			t_pipe_data *pipe_data, char *envp[]);

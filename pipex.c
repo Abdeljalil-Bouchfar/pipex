@@ -6,7 +6,7 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 18:49:12 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/29 00:50:42 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/03/29 16:53:46 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ void	validate_input(t_pipe_data *pipe_data, char *path_var)
 	i = -1;
 	cmd = NULL;
 	if (!pipe_data->is_heredoc)
-		pipe_data->infile_status = validate_infile(pipe_data->infile);
+		pipe_data->infile_status = validate_infile(pipe_data->infile_path);
 	else
 		pipe_data->infile_status = 0;
 	exec_programs_dirs = ft_split(path_var, ':');
@@ -73,23 +73,24 @@ void	check_heredoc(t_pipe_data *pipe_data, char *argv[], int argc)
 	if (!ft_strncmp(argv[1], "here_doc", 9))
 	{
 		pipe_data->is_heredoc = 1;
-		pipe_data->heredoc = argv[2];
-		pipe_data->infile = NULL;
+		pipe_data->heredoc_limiter = argv[2];
 		pipe_data->cmds_size = argc - 4;
 		pipe(pipe_data->here_doc_pipe_fds);
 		line = get_next_line(0);
-		while (line == NULL || strcmp(line, pipe_data->heredoc))
+		while (line == NULL || ft_strcmp(line, pipe_data->heredoc_limiter))
 		{
-			write(pipe_data->here_doc_pipe_fds[1], line, ft_strlen(line));
-			write(pipe_data->here_doc_pipe_fds[1], "\n", 1);
+			if (line)
+			{
+				write(pipe_data->here_doc_pipe_fds[1], line, ft_strlen(line));
+				write(pipe_data->here_doc_pipe_fds[1], "\n", 1);
+			}
 			line = get_next_line(0);
 		}
 	}
 	else
 	{
 		pipe_data->is_heredoc = 0;
-		pipe_data->heredoc = NULL;
-		pipe_data->infile = argv[1];
+		pipe_data->infile_path = argv[1];
 		pipe_data->cmds_size = argc - 3;
 	}
 }
@@ -101,11 +102,11 @@ void	set_pipe_data(t_pipe_data *pipe_data,
 	int		i;
 
 	path_var = NULL;
-	pipe_data->outfile = argv[argc - 1];
+	pipe_data->outfile_path = argv[argc - 1];
 	pipe_data->cmds_names = malloc((pipe_data->cmds_size) * sizeof(char **));
 	pipe_data->cmds_paths = malloc((pipe_data->cmds_size) * sizeof(char **));
 	if (!pipe_data->cmds_names || !pipe_data->cmds_paths)
-		exit(1);
+		exit(errno);
 	i = -1;
 	while (++i < pipe_data->cmds_size)
 		pipe_data->cmds_names[i] = argv[argc - pipe_data->cmds_size + i - 1];
