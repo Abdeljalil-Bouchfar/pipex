@@ -6,7 +6,7 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 18:49:12 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/29 16:53:46 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/04/03 03:19:25 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,6 +117,8 @@ void	set_pipe_data(t_pipe_data *pipe_data,
 		if (path_var)
 			break ;
 	}
+	if (!path_var)
+		exit(errno);
 	path_var = path_var + 5;
 	validate_input(pipe_data, path_var);
 }
@@ -129,7 +131,7 @@ int	main(int argc, char *argv[], char *envp[])
 		return (0);
 	pipe_data = malloc(sizeof(t_pipe_data));
 	if (!pipe_data)
-		return (1);
+		exit(errno);
 	check_heredoc(pipe_data, argv, argc);
 	set_pipe_data(pipe_data, argc, argv, envp);
 	driver(pipe_data, envp);
