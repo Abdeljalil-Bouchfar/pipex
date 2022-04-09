@@ -6,7 +6,7 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 18:49:09 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/03/29 16:50:27 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/04/09 08:28:07 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,9 @@ typedef struct s_pipe_data
 }	t_pipe_data;
 
 void	ft_putstr_fd(char *s, int fd);
+void	ft_free_str(char *str);
+void	ft_free_arr(char **arr);
+void	get_herdoc(t_pipe_data *pipe_data);
 char	*get_cmd(char *str);
 
 void	validate_cmd(char *cmd, char **cmd_path, char **exec_programs_dirs);

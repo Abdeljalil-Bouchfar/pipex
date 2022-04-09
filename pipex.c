@@ -6,7 +6,7 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 18:49:12 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/04/03 03:19:25 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/04/09 08:42:09 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,14 +28,14 @@ void	validate_input(t_pipe_data *pipe_data, char *path_var)
 	i = -1;
 	while (++i < pipe_data->cmds_size)
 	{
-		if (cmd)
-			free(cmd);
 		cmd = get_cmd(pipe_data->cmds_names[i]);
 		if (i != 0 || pipe_data->infile_status || pipe_data->is_heredoc)
 			validate_cmd(cmd, pipe_data->cmds_paths + i, exec_programs_dirs);
 		else
 			pipe_data->cmds_paths[i] = NULL;
+		ft_free_str(cmd);
 	}
+	ft_free_arr(exec_programs_dirs);
 }
 
 void	driver(t_pipe_data *pipe_data, char *envp[])
@@ -68,24 +68,13 @@ void	driver(t_pipe_data *pipe_data, char *envp[])
 
 void	check_heredoc(t_pipe_data *pipe_data, char *argv[], int argc)
 {
-	char	*line;
-
 	if (!ft_strncmp(argv[1], "here_doc", 9))
 	{
 		pipe_data->is_heredoc = 1;
 		pipe_data->heredoc_limiter = argv[2];
 		pipe_data->cmds_size = argc - 4;
 		pipe(pipe_data->here_doc_pipe_fds);
-		line = get_next_line(0);
-		while (line == NULL || ft_strcmp(line, pipe_data->heredoc_limiter))
-		{
-			if (line)
-			{
-				write(pipe_data->here_doc_pipe_fds[1], line, ft_strlen(line));
-				write(pipe_data->here_doc_pipe_fds[1], "\n", 1);
-			}
-			line = get_next_line(0);
-		}
+		get_herdoc(pipe_data);
 	}
 	else
 	{
