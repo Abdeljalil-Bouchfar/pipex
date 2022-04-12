@@ -6,7 +6,7 @@
 /*   By: abouchfa <abouchfa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 18:49:12 by abouchfa          #+#    #+#             */
-/*   Updated: 2022/04/09 08:42:09 by abouchfa         ###   ########.fr       */
+/*   Updated: 2022/04/12 09:28:19 by abouchfa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ int	main(int argc, char *argv[], char *envp[])
 {
 	t_pipe_data	*pipe_data;
 
-	if (argc < 2)
+	if (argc < 5)
 		return (0);
 	pipe_data = malloc(sizeof(t_pipe_data));
 	if (!pipe_data)
